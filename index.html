@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Tic-Tac-Toe</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container">
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="card">
+            <h1>TIC <span class="accent">TAC</span> TOE</h1>
+            <p id="setup-description">Enter player names to start the battle</p>
+            <div class="mode-toggle">
+                <button id="pvp-btn" class="mode-btn active" type="button">2 Players</button>
+                <button id="cpu-btn" class="mode-btn" type="button">Vs Computer</button>
+                <button id="online-btn" class="mode-btn" type="button">Online</button>
+            </div>
+            <div class="game-type">
+                <span class="label">Game Type</span>
+                <div class="mode-toggle">
+                    <button id="classic-btn" class="mode-btn active" type="button">Classic</button>
+                    <button id="survival-btn" class="mode-btn" type="button">3-Move Mode</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <input type="text" id="p1-input" placeholder="Player 1 (X)" autocomplete="off">
+                <input type="text" id="p2-input" placeholder="Player 2 (O)" autocomplete="off">
+                <input type="text" id="room-input" class="hidden" placeholder="Room Code (optional)" autocomplete="off" maxlength="6">
+            </div>
+            <p class="rule-note" id="rule-note">Classic mode fills the board normally and can end in a draw.</p>
+            <p class="setup-hint" id="setup-hint">Choose a mode and start playing.</p>
+            <button id="start-btn">START GAME</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden">
+            <div class="scoreboard">
+                <div class="score-card" id="p1-card">
+                    <span id="p1-name-display">Player 1</span>
+                    <span class="score" id="p1-score">0</span>
+                </div>
+                <div class="vs">VS</div>
+                <div class="score-card" id="p2-card">
+                    <span id="p2-name-display">Player 2</span>
+                    <span class="score" id="p2-score">0</span>
+                </div>
+            </div>
+
+            <h2 id="status-text">Player 1's Turn</h2>
+            <p id="room-banner" class="room-banner hidden"></p>
+
+            <div class="board" id="board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+            </div>
+
+            <div class="controls">
+                <button id="reset-btn">Restart Match</button>
+                <button id="quit-btn" class="secondary">Quit Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div id="modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h1 id="winner-message">PLAYER 1 WINS!</h1>
+            <button id="modal-close">Play Again</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
