@@ -6,5 +6,14 @@
       "passwordHash": "02580f4939016d485144c31fa750a646:4c8c7db339aa97b87f90c63e4b92d57924741bf3a20de3536280386d00e23b4a27695a60a8a644488f710635a5e937209b08e2f03b6a7837d51df7c49f4ab49b",
       "createdAt": "2026-04-07T15:12:28.488Z"
     }
+  ],
+  "globalChatMessages": [
+    {
+      "id": "3ae28de0-bc43-44d1-b98a-3264ba1caba7",
+      "userId": "1c51ce210702a6bfe6d3fcae",
+      "username": "carry_play",
+      "text": "hey",
+      "createdAt": "2026-04-07T15:23:58.472Z"
+    }
   ]
 }

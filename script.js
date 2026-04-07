@@ -10,6 +10,7 @@ const availabilityBox = document.getElementById('availability-box');
 const availabilityStatus = document.getElementById('availability-status');
 const usernameSuggestions = document.getElementById('username-suggestions');
 const currentUserDisplay = document.getElementById('current-user-display');
+const appScreen = document.getElementById('app-screen');
 const setupScreen = document.getElementById('setup-screen');
 const gameScreen = document.getElementById('game-screen');
 const startBtn = document.getElementById('start-btn');
@@ -33,6 +34,10 @@ const p2Display = document.getElementById('p2-name-display');
 const p1ScoreDisplay = document.getElementById('p1-score');
 const p2ScoreDisplay = document.getElementById('p2-score');
 const ruleNote = document.getElementById('rule-note');
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const chatSendBtn = document.getElementById('chat-send-btn');
+const chatConnectionStatus = document.getElementById('chat-connection-status');
 
 const SOCKET_SERVER_URL =
   window.location.protocol.startsWith('http') && window.location.port === '3000'
@@ -146,7 +151,7 @@ function renderAuthMode() {
 function renderAuthenticatedState() {
   const loggedIn = Boolean(session.token && session.user);
   authScreen.classList.toggle('hidden', loggedIn);
-  setupScreen.classList.toggle('hidden', !loggedIn);
+  appScreen.classList.toggle('hidden', !loggedIn);
   currentUserDisplay.innerText = session.user?.username || 'player';
 
   if (session.user) {
@@ -171,11 +176,67 @@ async function restoreSession() {
   }
 
   renderAuthenticatedState();
+  if (session.token) {
+    void ensureSocket();
+  }
 }
 
 function setAuthHint(message, isError = false) {
   authHint.innerText = message;
   authHint.style.color = isError ? '#fda4af' : '#cbd5e1';
+}
+
+function setChatConnectionStatus(message, isError = false) {
+  chatConnectionStatus.innerText = message;
+  chatConnectionStatus.style.color = isError ? '#fda4af' : '#cbd5e1';
+}
+
+function renderChatHistory(messages) {
+  chatMessages.innerHTML = '';
+
+  if (!messages.length) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'chat-empty';
+    emptyState.innerText = 'No messages yet. Start the conversation.';
+    chatMessages.appendChild(emptyState);
+    return;
+  }
+
+  messages.forEach((message) => appendChatMessage(message, false));
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function appendChatMessage(message, scroll = true) {
+  const emptyState = chatMessages.querySelector('.chat-empty');
+  if (emptyState) {
+    emptyState.remove();
+  }
+
+  const item = document.createElement('div');
+  item.className = 'chat-message';
+  if (message.username === session.user?.username) {
+    item.classList.add('mine');
+  }
+
+  const meta = document.createElement('div');
+  meta.className = 'chat-meta';
+  meta.innerHTML = `<strong>${message.username}</strong><span>${new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>`;
+
+  const text = document.createElement('p');
+  text.className = 'chat-text';
+  text.innerText = message.text;
+
+  item.appendChild(meta);
+  item.appendChild(text);
+  chatMessages.appendChild(item);
+
+  while (chatMessages.children.length > 100) {
+    chatMessages.removeChild(chatMessages.firstChild);
+  }
+
+  if (scroll) {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
 }
 
 async function checkUsernameAvailability() {
@@ -253,6 +314,7 @@ async function handleAuthSubmit() {
     authPasswordInput.value = '';
     setAuthHint('Authenticated successfully.');
     renderAuthenticatedState();
+    void ensureSocket();
   } catch (error) {
     setAuthHint(error instanceof Error ? error.message : 'Authentication failed.', true);
   }
@@ -626,17 +688,21 @@ function loadSocketClient() {
 }
 
 async function ensureSocket() {
-  if (onlineState.socket) {
+  if (onlineState.socket || !session.token) {
     return;
   }
 
   const socketFactory = await loadSocketClient();
   onlineState.socket = socketFactory(SOCKET_SERVER_URL, {
+    auth: {
+      token: session.token,
+    },
     transports: ['websocket', 'polling'],
   });
 
   onlineState.socket.on('connect', () => {
     onlineState.connected = true;
+    setChatConnectionStatus('Connected to lobby');
     if (isOnlineGame()) {
       setupHint.innerText = 'Connected. Join a room to start playing.';
     }
@@ -644,6 +710,7 @@ async function ensureSocket() {
 
   onlineState.socket.on('disconnect', () => {
     onlineState.connected = false;
+    setChatConnectionStatus('Disconnected from lobby', true);
     if (isOnlineGame()) {
       gameActive = false;
       isResolvingRound = false;
@@ -654,11 +721,20 @@ async function ensureSocket() {
 
   onlineState.socket.on('connect_error', () => {
     onlineState.connected = false;
+    setChatConnectionStatus('Could not connect to lobby', true);
     setupHint.innerText = `Couldn't reach the game server. Start it with "npm start" and open ${SOCKET_SERVER_URL}.`;
   });
 
   onlineState.socket.on('room:error', ({ message }) => {
     setupHint.innerText = message;
+  });
+
+  onlineState.socket.on('chat:history', (messages) => {
+    renderChatHistory(messages);
+  });
+
+  onlineState.socket.on('chat:message', (message) => {
+    appendChatMessage(message);
   });
 
   onlineState.socket.on('room:joined', ({ roomCode, playerMark }) => {
@@ -677,6 +753,16 @@ async function ensureSocket() {
 
     applyOnlineSnapshot(snapshot);
   });
+}
+
+function sendChatMessage() {
+  const text = chatInput.value.trim();
+  if (!text || !onlineState.socket || !onlineState.connected) {
+    return;
+  }
+
+  onlineState.socket.emit('chat:send', { text });
+  chatInput.value = '';
 }
 
 function applyOnlineSnapshot(snapshot) {
@@ -916,5 +1002,13 @@ authPasswordInput.addEventListener('keydown', (event) => {
 authUsernameInput.addEventListener('input', () => {
   if (authMode === 'signup') {
     scheduleUsernameCheck();
+  }
+});
+
+chatSendBtn.addEventListener('click', sendChatMessage);
+chatInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendChatMessage();
   }
 });

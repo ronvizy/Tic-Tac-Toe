@@ -22,14 +22,41 @@ body {
     height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
-    overflow: hidden;
+    align-items: flex-start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 12px 0;
 }
 
 .container {
     width: 100%;
+    max-width: 980px;
+    padding: 12px;
+}
+
+.app-shell {
+    display: block;
+}
+
+.auth-card-shell {
     max-width: 450px;
-    padding: 20px;
+    margin: 0 auto;
+}
+
+.app-screen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 14px;
+    align-items: start;
+}
+
+.main-panel {
+    min-width: 0;
+}
+
+#game-screen {
+    max-width: 560px;
+    margin: 0 auto;
 }
 
 #auth-screen {
@@ -48,16 +75,16 @@ body {
     background: var(--card-bg);
     backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
-    padding: 40px;
+    padding: 24px;
     border-radius: 24px;
     text-align: center;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-h1 { font-weight: 800; font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 10px; }
+h1 { font-weight: 800; font-size: 2.1rem; letter-spacing: 2px; margin-bottom: 10px; }
 .accent { color: var(--accent-x); }
 
-p { color: #94a3b8; margin-bottom: 30px; }
+p { color: #94a3b8; margin-bottom: 18px; }
 
 .rule-note {
     font-size: 0.92rem;
@@ -89,7 +116,7 @@ p { color: #94a3b8; margin-bottom: 30px; }
 .mode-toggle {
     display: flex;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
     flex-wrap: wrap;
 }
 
@@ -108,7 +135,7 @@ p { color: #94a3b8; margin-bottom: 30px; }
 .input-group input {
     width: 100%;
     padding: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     border-radius: 12px;
     border: 1px solid #334155;
     background: #0f172a;
@@ -184,7 +211,80 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+}
+
+.chat-panel {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 24px);
+}
+
+.chat-header {
+    margin-bottom: 14px;
+}
+
+.chat-connection-status {
+    color: #cbd5e1;
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+.chat-messages {
+    flex: 1;
+    min-height: 180px;
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.chat-empty,
+.chat-message {
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 12px 14px;
+}
+
+.chat-message.mine {
+    border-color: rgba(34, 211, 238, 0.28);
+}
+
+.chat-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+
+.chat-text {
+    color: #f8fafc;
+    line-height: 1.45;
+}
+
+.chat-compose textarea {
+    width: 100%;
+    min-height: 76px;
+    margin-bottom: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    resize: vertical;
+}
+
+.chat-compose textarea:focus {
+    border-color: var(--accent-x);
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
 }
 
 .score-card {
@@ -203,7 +303,7 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
 
 .vs { font-weight: 800; color: #475569; }
 
-#status-text { margin-bottom: 20px; text-align: center; font-size: 1.2rem; }
+#status-text { margin-bottom: 10px; text-align: center; font-size: 1rem; }
 #status-text.result {
     color: #f8fafc;
     font-weight: 700;
@@ -219,7 +319,7 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
 }
 
 .room-banner {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     text-align: center;
     color: #cbd5e1;
     font-size: 0.95rem;
@@ -231,8 +331,11 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
 .board {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 10px;
+    margin-bottom: 14px;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .cell {
@@ -242,7 +345,7 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 3rem;
+    font-size: 1.7rem;
     font-weight: 800;
     cursor: pointer;
     transition: 0.2s;
@@ -296,7 +399,7 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
     }
 }
 
-.controls { display: flex; gap: 10px; }
+.controls { display: flex; gap: 8px; }
 .secondary { background: transparent; border: 1px solid #334155; }
 
 /* Modal */
@@ -319,10 +422,29 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
     border: 1px solid var(--glass-border);
 }
 
+@media (max-width: 900px) {
+    .app-screen {
+        grid-template-columns: 1fr;
+    }
+
+    .chat-messages {
+        height: 240px;
+    }
+
+    #game-screen,
+    .board {
+        max-width: 100%;
+    }
+}
+
 @media (max-width: 520px) {
+    .app-screen {
+        grid-template-columns: 1fr;
+    }
+
     .card,
     .modal-content {
-        padding: 28px;
+        padding: 20px;
     }
 
     .mode-toggle,

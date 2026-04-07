@@ -1,6 +1,7 @@
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
@@ -9,17 +10,33 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { JoinRoomPayload, MovePayload, RestartPayload } from './game.types';
+import { AuthService } from './auth.service';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-export class GameGateway implements OnGatewayDisconnect {
+export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  constructor(private readonly gameService: GameService) {}
+  constructor(
+    private readonly gameService: GameService,
+    private readonly authService: AuthService,
+  ) {}
+
+  async handleConnection(client: Socket): Promise<void> {
+    try {
+      const token = this.readToken(client);
+      const user = await this.authService.getProfileFromToken(token);
+      client.data.user = user;
+      client.emit('chat:history', this.gameService.getGlobalChatMessages());
+    } catch (error) {
+      this.emitError(client, error);
+      client.disconnect();
+    }
+  }
 
   handleDisconnect(client: Socket): void {
     const room = this.gameService.leaveRoom(client.id);
@@ -83,8 +100,47 @@ export class GameGateway implements OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('chat:send')
+  async handleGlobalChat(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { text?: string },
+  ): Promise<void> {
+    try {
+      const message = await this.gameService.addGlobalChatMessage(
+        this.getAuthenticatedUser(client),
+        payload.text ?? '',
+      );
+      this.server.emit('chat:message', message);
+    } catch (error) {
+      this.emitError(client, error);
+    }
+  }
+
   private emitError(client: Socket, error: unknown): void {
     const message = error instanceof Error ? error.message : 'Unexpected server error.';
     client.emit('room:error', { message });
+  }
+
+  private readToken(client: Socket): string | undefined {
+    const authToken = client.handshake.auth?.token;
+    if (typeof authToken === 'string' && authToken.trim()) {
+      return authToken;
+    }
+
+    const bearerHeader = client.handshake.headers.authorization;
+    if (typeof bearerHeader === 'string' && bearerHeader.startsWith('Bearer ')) {
+      return bearerHeader.slice(7);
+    }
+
+    return undefined;
+  }
+
+  private getAuthenticatedUser(client: Socket): { id: string; username: string } {
+    const user = client.data.user as { id: string; username: string } | undefined;
+    if (!user) {
+      throw new Error('Unauthenticated socket.');
+    }
+
+    return user;
   }
 }

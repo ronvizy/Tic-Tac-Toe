@@ -48,3 +48,11 @@ export interface PublicRoomState {
   winnerMark: Mark | null;
   winningLine: number[];
 }
+
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  username: string;
+  text: string;
+  createdAt: string;
+}

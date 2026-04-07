@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import {
+  ChatMessage,
   GameType,
   JoinRoomPayload,
   Mark,
@@ -9,6 +11,7 @@ import {
   RestartPayload,
   RoomState,
 } from './game.types';
+import { StorageService } from './storage.service';
 
 const WINNING_LINES: number[][] = [
   [0, 1, 2],
@@ -24,6 +27,11 @@ const WINNING_LINES: number[][] = [
 @Injectable()
 export class GameService {
   private readonly rooms = new Map<string, RoomState>();
+  private globalChatMessages: ChatMessage[] = [];
+
+  constructor(private readonly storageService: StorageService) {
+    void this.hydrateChatMessages();
+  }
 
   joinRoom(socketId: string, payload: JoinRoomPayload): { room: RoomState; player: PlayerState } {
     const roomCode = this.normalizeRoomCode(payload.roomCode);
@@ -164,6 +172,35 @@ export class GameService {
     };
   }
 
+  getGlobalChatMessages(): ChatMessage[] {
+    return this.globalChatMessages.map((message) => ({ ...message }));
+  }
+
+  async addGlobalChatMessage(user: { id: string; username: string }, text: string): Promise<ChatMessage> {
+    const normalizedText = text.trim().replace(/\s+/g, ' ');
+    if (!normalizedText) {
+      throw new BadRequestException('Message cannot be empty.');
+    }
+
+    if (normalizedText.length > 280) {
+      throw new BadRequestException('Message must be 280 characters or fewer.');
+    }
+
+    const message: ChatMessage = {
+      id: randomUUID(),
+      userId: user.id,
+      username: user.username,
+      text: normalizedText,
+      createdAt: new Date().toISOString(),
+    };
+
+    this.globalChatMessages = [...this.globalChatMessages, message].slice(-100);
+    const data = await this.storageService.read();
+    data.globalChatMessages = this.globalChatMessages;
+    await this.storageService.write(data);
+    return message;
+  }
+
   private getRoom(roomCode: string): RoomState {
     const normalizedCode = this.normalizeRoomCode(roomCode);
     const room = this.rooms.get(normalizedCode);
@@ -214,5 +251,10 @@ export class GameService {
 
   private generateRoomCode(): string {
     return Math.random().toString(36).slice(2, 8).toUpperCase();
+  }
+
+  private async hydrateChatMessages(): Promise<void> {
+    const data = await this.storageService.read();
+    this.globalChatMessages = data.globalChatMessages.slice(-100);
   }
 }

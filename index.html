@@ -9,8 +9,8 @@
 </head>
 <body>
 
-    <div class="container">
-        <div id="auth-screen" class="card">
+    <div class="container app-shell">
+        <div id="auth-screen" class="card auth-card-shell">
             <h1>TIC <span class="accent">TAC</span> TOE</h1>
             <p id="auth-description">Login or create an account to continue</p>
             <div class="mode-toggle">
@@ -29,66 +29,86 @@
             <button id="auth-submit" type="button">LOGIN</button>
         </div>
 
-        <!-- Setup Screen -->
-        <div id="setup-screen" class="card hidden">
-            <h1>TIC <span class="accent">TAC</span> TOE</h1>
-            <p id="setup-description">Enter player names to start the battle</p>
-            <p class="auth-badge">Signed in as <span id="current-user-display">player</span></p>
-            <div class="mode-toggle">
-                <button id="pvp-btn" class="mode-btn active" type="button">2 Players</button>
-                <button id="cpu-btn" class="mode-btn" type="button">Vs Computer</button>
-                <button id="online-btn" class="mode-btn" type="button">Online</button>
-            </div>
-            <div class="game-type">
-                <span class="label">Game Type</span>
-                <div class="mode-toggle">
-                    <button id="classic-btn" class="mode-btn active" type="button">Classic</button>
-                    <button id="survival-btn" class="mode-btn" type="button">3-Move Mode</button>
+        <div id="app-screen" class="app-screen hidden">
+            <div class="main-panel">
+                <!-- Setup Screen -->
+                <div id="setup-screen" class="card">
+                    <h1>TIC <span class="accent">TAC</span> TOE</h1>
+                    <p id="setup-description">Enter player names to start the battle</p>
+                    <p class="auth-badge">Signed in as <span id="current-user-display">player</span></p>
+                    <div class="mode-toggle">
+                        <button id="pvp-btn" class="mode-btn active" type="button">2 Players</button>
+                        <button id="cpu-btn" class="mode-btn" type="button">Vs Computer</button>
+                        <button id="online-btn" class="mode-btn" type="button">Online</button>
+                    </div>
+                    <div class="game-type">
+                        <span class="label">Game Type</span>
+                        <div class="mode-toggle">
+                            <button id="classic-btn" class="mode-btn active" type="button">Classic</button>
+                            <button id="survival-btn" class="mode-btn" type="button">3-Move Mode</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="p1-input" placeholder="Player 1 (X)" autocomplete="off">
+                        <input type="text" id="p2-input" placeholder="Player 2 (O)" autocomplete="off">
+                        <input type="text" id="room-input" class="hidden" placeholder="Room Code (optional)" autocomplete="off" maxlength="6">
+                    </div>
+                    <p class="rule-note" id="rule-note">Classic mode fills the board normally and can end in a draw.</p>
+                    <p class="setup-hint" id="setup-hint">Choose a mode and start playing.</p>
+                    <button id="start-btn">START GAME</button>
+                </div>
+
+                <!-- Game Screen -->
+                <div id="game-screen" class="hidden">
+                    <div class="scoreboard">
+                        <div class="score-card" id="p1-card">
+                            <span id="p1-name-display">Player 1</span>
+                            <span class="score" id="p1-score">0</span>
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="score-card" id="p2-card">
+                            <span id="p2-name-display">Player 2</span>
+                            <span class="score" id="p2-score">0</span>
+                        </div>
+                    </div>
+
+                    <h2 id="status-text">Player 1's Turn</h2>
+                    <p id="room-banner" class="room-banner hidden"></p>
+
+                    <div class="board" id="board">
+                        <div class="cell" data-index="0"></div>
+                        <div class="cell" data-index="1"></div>
+                        <div class="cell" data-index="2"></div>
+                        <div class="cell" data-index="3"></div>
+                        <div class="cell" data-index="4"></div>
+                        <div class="cell" data-index="5"></div>
+                        <div class="cell" data-index="6"></div>
+                        <div class="cell" data-index="7"></div>
+                        <div class="cell" data-index="8"></div>
+                    </div>
+
+                    <div class="controls">
+                        <button id="reset-btn">Restart Match</button>
+                        <button id="quit-btn" class="secondary">Quit Game</button>
+                    </div>
                 </div>
             </div>
-            <div class="input-group">
-                <input type="text" id="p1-input" placeholder="Player 1 (X)" autocomplete="off">
-                <input type="text" id="p2-input" placeholder="Player 2 (O)" autocomplete="off">
-                <input type="text" id="room-input" class="hidden" placeholder="Room Code (optional)" autocomplete="off" maxlength="6">
-            </div>
-            <p class="rule-note" id="rule-note">Classic mode fills the board normally and can end in a draw.</p>
-            <p class="setup-hint" id="setup-hint">Choose a mode and start playing.</p>
-            <button id="start-btn">START GAME</button>
-        </div>
 
-        <!-- Game Screen -->
-        <div id="game-screen" class="hidden">
-            <div class="scoreboard">
-                <div class="score-card" id="p1-card">
-                    <span id="p1-name-display">Player 1</span>
-                    <span class="score" id="p1-score">0</span>
+            <aside class="chat-panel card">
+                <div class="chat-header">
+                    <div>
+                        <h2>GLOBAL <span class="accent">CHAT</span></h2>
+                        <p id="chat-connection-status" class="chat-connection-status">Connecting...</p>
+                    </div>
                 </div>
-                <div class="vs">VS</div>
-                <div class="score-card" id="p2-card">
-                    <span id="p2-name-display">Player 2</span>
-                    <span class="score" id="p2-score">0</span>
+                <div id="chat-messages" class="chat-messages">
+                    <div class="chat-empty">No messages yet. Start the conversation.</div>
                 </div>
-            </div>
-
-            <h2 id="status-text">Player 1's Turn</h2>
-            <p id="room-banner" class="room-banner hidden"></p>
-
-            <div class="board" id="board">
-                <div class="cell" data-index="0"></div>
-                <div class="cell" data-index="1"></div>
-                <div class="cell" data-index="2"></div>
-                <div class="cell" data-index="3"></div>
-                <div class="cell" data-index="4"></div>
-                <div class="cell" data-index="5"></div>
-                <div class="cell" data-index="6"></div>
-                <div class="cell" data-index="7"></div>
-                <div class="cell" data-index="8"></div>
-            </div>
-
-            <div class="controls">
-                <button id="reset-btn">Restart Match</button>
-                <button id="quit-btn" class="secondary">Quit Game</button>
-            </div>
+                <div class="chat-compose">
+                    <textarea id="chat-input" placeholder="Message the lobby" maxlength="280"></textarea>
+                    <button id="chat-send-btn" type="button">SEND</button>
+                </div>
+            </aside>
         </div>
     </div>
 
