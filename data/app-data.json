@@ -5,6 +5,12 @@
       "username": "carry_play",
       "passwordHash": "02580f4939016d485144c31fa750a646:4c8c7db339aa97b87f90c63e4b92d57924741bf3a20de3536280386d00e23b4a27695a60a8a644488f710635a5e937209b08e2f03b6a7837d51df7c49f4ab49b",
       "createdAt": "2026-04-07T15:12:28.488Z"
+    },
+    {
+      "id": "2dcd43835ed7a10d292cda2e",
+      "username": "rohan",
+      "passwordHash": "ec59453dbc6889e8e0d562431e2eaaa2:f284b0aa9214251de065b5bec9b9f9401ff088098d9b54599989238f3ecf8c8f11683b8541802d577b8260822cfba3ee81e38fe401b7243c110704bd70b7dca3",
+      "createdAt": "2026-04-07T15:25:41.904Z"
     }
   ],
   "globalChatMessages": [
@@ -14,6 +20,13 @@
       "username": "carry_play",
       "text": "hey",
       "createdAt": "2026-04-07T15:23:58.472Z"
+    },
+    {
+      "id": "97fc7c35-93aa-42cc-b84d-1f1de12161d5",
+      "userId": "2dcd43835ed7a10d292cda2e",
+      "username": "rohan",
+      "text": "hey",
+      "createdAt": "2026-04-07T15:25:46.473Z"
     }
   ]
 }
