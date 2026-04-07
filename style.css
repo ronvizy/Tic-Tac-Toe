@@ -340,6 +340,34 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
     color: #ffffff;
 }
 
+.shared-room-card {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.22);
+}
+
+.shared-room-label {
+    margin-bottom: 0;
+    font-size: 0.72rem;
+    color: inherit;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.join-room-chip {
+    width: auto;
+    min-width: 64px;
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    border-radius: 8px;
+    text-transform: uppercase;
+}
+
 .chat-compose textarea {
     width: 100%;
     min-height: 56px;

@@ -16,6 +16,7 @@ const gameScreen = document.getElementById('game-screen');
 const startBtn = document.getElementById('start-btn');
 const resetBtn = document.getElementById('reset-btn');
 const quitBtn = document.getElementById('quit-btn');
+const shareRoomBtn = document.getElementById('share-room-btn');
 const pvpBtn = document.getElementById('pvp-btn');
 const cpuBtn = document.getElementById('cpu-btn');
 const onlineBtn = document.getElementById('online-btn');
@@ -83,6 +84,7 @@ const onlineState = {
   myMark: '',
   connected: false,
   action: 'create',
+  roomPlayerCount: 0,
 };
 
 let socketClientLoader = null;
@@ -265,6 +267,28 @@ function appendChatMessage(message, scroll = true) {
 
   item.appendChild(meta);
   item.appendChild(text);
+
+  if (message.sharedRoomId) {
+    const shareCard = document.createElement('div');
+    shareCard.className = 'shared-room-card';
+
+    const shareLabel = document.createElement('p');
+    shareLabel.className = 'shared-room-label';
+    shareLabel.innerText = `Room ${message.sharedRoomId}`;
+
+    const joinButton = document.createElement('button');
+    joinButton.type = 'button';
+    joinButton.className = 'join-room-chip';
+    joinButton.innerText = 'Join';
+    joinButton.addEventListener('click', () => {
+      void joinSharedRoomFromChat(message.sharedRoomId);
+    });
+
+    shareCard.appendChild(shareLabel);
+    shareCard.appendChild(joinButton);
+    item.appendChild(shareCard);
+  }
+
   chatMessages.appendChild(item);
 
   while (chatMessages.children.length > 100) {
@@ -459,6 +483,7 @@ function updateRoomBanner() {
   const text = getRoomBannerText();
   roomBanner.innerText = text;
   roomBanner.classList.toggle('hidden', !text);
+  shareRoomBtn.classList.toggle('hidden', !text || onlineState.roomPlayerCount >= 2);
 }
 
 function highlightOldestMove() {
@@ -885,6 +910,7 @@ function applyOnlineSnapshot(snapshot) {
   player1Name = snapshot.players.find((player) => player.mark === 'X')?.name || 'Player X';
   player2Name = snapshot.players.find((player) => player.mark === 'O')?.name || 'Waiting...';
   onlineState.roomCode = snapshot.roomCode;
+  onlineState.roomPlayerCount = snapshot.players.length;
 
   renderBoard();
   updateScoreboard();
@@ -987,6 +1013,34 @@ async function startOnlineGame() {
   });
 }
 
+async function joinSharedRoomFromChat(roomCode) {
+  if (!roomCode) {
+    return;
+  }
+
+  setPlayerMode('online');
+  setOnlineRoomAction('join');
+  roomInput.value = roomCode;
+
+  if (isOnlineGame() && onlineState.roomCode && onlineState.roomCode !== roomCode) {
+    leaveOnlineRoom();
+  }
+
+  await startOnlineGame();
+}
+
+function shareCurrentRoomToGlobalChat() {
+  if (!onlineState.socket || !onlineState.roomCode) {
+    return;
+  }
+
+  onlineState.socket.emit('chat:send', {
+    text: `Join my room ${onlineState.roomCode}`,
+    sharedRoomId: onlineState.roomCode,
+  });
+  setActiveChatScope('global');
+}
+
 function leaveOnlineRoom() {
   clearPendingTimers();
 
@@ -996,6 +1050,7 @@ function leaveOnlineRoom() {
 
   onlineState.roomCode = '';
   onlineState.myMark = '';
+  onlineState.roomPlayerCount = 0;
   onlinePreviousRoundStatus = 'idle';
   roomChatHistory = [];
   setActiveChatScope('global');
@@ -1071,6 +1126,7 @@ cells.forEach((cell) => cell.addEventListener('click', handleCellClick));
 startBtn.addEventListener('click', handleStart);
 resetBtn.addEventListener('click', handleReset);
 quitBtn.addEventListener('click', handleQuit);
+shareRoomBtn.addEventListener('click', shareCurrentRoomToGlobalChat);
 pvpBtn.addEventListener('click', () => setPlayerMode('pvp'));
 cpuBtn.addEventListener('click', () => setPlayerMode('cpu'));
 onlineBtn.addEventListener('click', () => setPlayerMode('online'));

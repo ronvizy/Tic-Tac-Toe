@@ -189,14 +189,24 @@ export class GameService {
     return (this.roomChatMessages.get(normalizedCode) ?? []).map((message) => ({ ...message }));
   }
 
-  async addGlobalChatMessage(user: { id: string; username: string }, text: string): Promise<ChatMessage> {
+  async addGlobalChatMessage(
+    user: { id: string; username: string },
+    text: string,
+    sharedRoomId?: string,
+  ): Promise<ChatMessage> {
     const normalizedText = this.normalizeChatText(text);
+    const normalizedSharedRoomId = sharedRoomId ? this.normalizeRoomCode(sharedRoomId) : undefined;
+    if (normalizedSharedRoomId && !this.rooms.has(normalizedSharedRoomId)) {
+      throw new NotFoundException('Room not found, so it cannot be shared.');
+    }
+
     const message: ChatMessage = {
       id: randomUUID(),
       userId: user.id,
       username: user.username,
       text: normalizedText,
       createdAt: new Date().toISOString(),
+      ...(normalizedSharedRoomId ? { sharedRoomId: normalizedSharedRoomId } : {}),
     };
 
     this.globalChatMessages = [...this.globalChatMessages, message].slice(-100);

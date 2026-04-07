@@ -56,6 +56,7 @@ export interface ChatMessage {
   username: string;
   text: string;
   createdAt: string;
+  sharedRoomId?: string;
 }
 
 export interface RoomChatMessage extends ChatMessage {

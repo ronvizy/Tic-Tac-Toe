@@ -112,12 +112,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('chat:send')
   async handleGlobalChat(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { text?: string },
+    @MessageBody() payload: { text?: string; sharedRoomId?: string },
   ): Promise<void> {
     try {
       const message = await this.gameService.addGlobalChatMessage(
         this.getAuthenticatedUser(client),
         payload.text ?? '',
+        payload.sharedRoomId,
       );
       this.server.emit('chat:message', message);
     } catch (error) {
