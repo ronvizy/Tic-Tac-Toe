@@ -57,3 +57,7 @@ export interface ChatMessage {
   text: string;
   createdAt: string;
 }
+
+export interface RoomChatMessage extends ChatMessage {
+  roomCode: string;
+}

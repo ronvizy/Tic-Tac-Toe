@@ -101,9 +101,13 @@
             <aside class="chat-panel card">
                 <div class="chat-header">
                     <div>
-                        <h2>GLOBAL <span class="accent">CHAT</span></h2>
+                        <h2><span id="chat-title-prefix">GLOBAL</span> <span class="accent">CHAT</span></h2>
                         <p id="chat-connection-status" class="chat-connection-status">Connecting...</p>
                     </div>
+                </div>
+                <div class="mode-toggle chat-tabs">
+                    <button id="global-chat-tab" class="mode-btn active" type="button">Global</button>
+                    <button id="room-chat-tab" class="mode-btn" type="button">Room</button>
                 </div>
                 <div id="chat-messages" class="chat-messages">
                     <div class="chat-empty">No messages yet. Start the conversation.</div>

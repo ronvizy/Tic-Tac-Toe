@@ -41,6 +41,9 @@ const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 const chatSendBtn = document.getElementById('chat-send-btn');
 const chatConnectionStatus = document.getElementById('chat-connection-status');
+const globalChatTab = document.getElementById('global-chat-tab');
+const roomChatTab = document.getElementById('room-chat-tab');
+const chatTitlePrefix = document.getElementById('chat-title-prefix');
 
 const SOCKET_SERVER_URL =
   window.location.protocol.startsWith('http') && window.location.port === '3000'
@@ -89,6 +92,9 @@ let session = {
   user: null,
 };
 let usernameCheckTimer = null;
+let activeChatScope = 'global';
+let globalChatHistory = [];
+let roomChatHistory = [];
 
 function saveSession() {
   if (session.token && session.user) {
@@ -210,6 +216,33 @@ function renderChatHistory(messages) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+function getActiveChatMessages() {
+  return activeChatScope === 'room' ? roomChatHistory : globalChatHistory;
+}
+
+function renderActiveChat() {
+  chatTitlePrefix.innerText = activeChatScope === 'room' ? 'ROOM' : 'GLOBAL';
+  chatInput.placeholder =
+    activeChatScope === 'room'
+      ? (onlineState.roomCode ? `Message room ${onlineState.roomCode}` : 'Join a room to chat here')
+      : 'Message the lobby';
+  chatInput.disabled = activeChatScope === 'room' && !onlineState.roomCode;
+  chatSendBtn.disabled = activeChatScope === 'room' && !onlineState.roomCode;
+  roomChatTab.disabled = !onlineState.roomCode;
+  renderChatHistory(getActiveChatMessages());
+}
+
+function setActiveChatScope(scope) {
+  if (scope === 'room' && !onlineState.roomCode) {
+    return;
+  }
+
+  activeChatScope = scope;
+  globalChatTab.classList.toggle('active', scope === 'global');
+  roomChatTab.classList.toggle('active', scope === 'room');
+  renderActiveChat();
+}
+
 function appendChatMessage(message, scroll = true) {
   const emptyState = chatMessages.querySelector('.chat-empty');
   if (emptyState) {
@@ -240,6 +273,20 @@ function appendChatMessage(message, scroll = true) {
 
   if (scroll) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+}
+
+function pushGlobalChatMessage(message) {
+  globalChatHistory = [...globalChatHistory, message].slice(-100);
+  if (activeChatScope === 'global') {
+    appendChatMessage(message);
+  }
+}
+
+function pushRoomChatMessage(message) {
+  roomChatHistory = [...roomChatHistory, message].slice(-50);
+  if (activeChatScope === 'room') {
+    appendChatMessage(message);
   }
 }
 
@@ -754,11 +801,32 @@ async function ensureSocket() {
   });
 
   onlineState.socket.on('chat:history', (messages) => {
-    renderChatHistory(messages);
+    globalChatHistory = messages;
+    if (activeChatScope === 'global') {
+      renderActiveChat();
+    }
   });
 
   onlineState.socket.on('chat:message', (message) => {
-    appendChatMessage(message);
+    pushGlobalChatMessage(message);
+  });
+
+  onlineState.socket.on('room:chat:history', ({ roomCode, messages }) => {
+    if (!roomCode) {
+      roomChatHistory = [];
+      setActiveChatScope('global');
+      return;
+    }
+
+    onlineState.roomCode = roomCode;
+    roomChatHistory = messages;
+    setActiveChatScope('room');
+  });
+
+  onlineState.socket.on('room:chat:message', (message) => {
+    if (message.roomCode === onlineState.roomCode) {
+      pushRoomChatMessage(message);
+    }
   });
 
   onlineState.socket.on('room:joined', ({ roomCode, playerMark }) => {
@@ -768,6 +836,7 @@ async function ensureSocket() {
     setupScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
     updateRoomBanner();
+    renderActiveChat();
   });
 
   onlineState.socket.on('room:update', (snapshot) => {
@@ -785,7 +854,19 @@ function sendChatMessage() {
     return;
   }
 
-  onlineState.socket.emit('chat:send', { text });
+  if (activeChatScope === 'room') {
+    if (!onlineState.roomCode) {
+      return;
+    }
+
+    onlineState.socket.emit('room:chat:send', {
+      roomCode: onlineState.roomCode,
+      text,
+    });
+  } else {
+    onlineState.socket.emit('chat:send', { text });
+  }
+
   chatInput.value = '';
 }
 
@@ -916,6 +997,8 @@ function leaveOnlineRoom() {
   onlineState.roomCode = '';
   onlineState.myMark = '';
   onlinePreviousRoundStatus = 'idle';
+  roomChatHistory = [];
+  setActiveChatScope('global');
 }
 
 function handleCellClick(event) {
@@ -1006,6 +1089,7 @@ updateScoreboard();
 setBoardDisabled(true);
 updateRoomBanner();
 renderAuthMode();
+renderActiveChat();
 void restoreSession();
 
 loginTab.addEventListener('click', () => {
@@ -1039,6 +1123,8 @@ authUsernameInput.addEventListener('input', () => {
 });
 
 chatSendBtn.addEventListener('click', sendChatMessage);
+globalChatTab.addEventListener('click', () => setActiveChatScope('global'));
+roomChatTab.addEventListener('click', () => setActiveChatScope('room'));
 chatInput.addEventListener('keydown', (event) => {
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault();

@@ -34,6 +34,41 @@
       "username": "carry_play",
       "text": "adfad",
       "createdAt": "2026-04-07T16:29:43.939Z"
+    },
+    {
+      "id": "47a512e5-6527-4139-b277-a0635f3c6227",
+      "userId": "2dcd43835ed7a10d292cda2e",
+      "username": "rohan",
+      "text": "this is working",
+      "createdAt": "2026-04-07T16:36:17.856Z"
     }
-  ]
+  ],
+  "roomChatMessages": {
+    "SRGMAM": [
+      {
+        "id": "1242f561-75b8-4864-b908-abc46f5a8fee",
+        "roomCode": "SRGMAM",
+        "userId": "2dcd43835ed7a10d292cda2e",
+        "username": "rohan",
+        "text": "Hey",
+        "createdAt": "2026-04-07T16:40:16.884Z"
+      },
+      {
+        "id": "97879ad4-1a81-407c-adf3-31c8b81f4c9c",
+        "roomCode": "SRGMAM",
+        "userId": "1c51ce210702a6bfe6d3fcae",
+        "username": "carry_play",
+        "text": "ese kaise bhai",
+        "createdAt": "2026-04-07T16:40:24.816Z"
+      },
+      {
+        "id": "11596f24-7532-41ab-ad85-9d1567b7acb7",
+        "roomCode": "SRGMAM",
+        "userId": "1c51ce210702a6bfe6d3fcae",
+        "username": "carry_play",
+        "text": "kar kar kuch to kar",
+        "createdAt": "2026-04-07T16:40:38.930Z"
+      }
+    ]
+  }
 }

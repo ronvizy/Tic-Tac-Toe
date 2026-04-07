@@ -60,6 +60,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         roomCode: room.code,
         playerMark: player.mark,
       });
+      this.server.to(room.code).emit('room:chat:history', {
+        roomCode: room.code,
+        messages: this.gameService.getRoomChatMessages(room.code),
+      });
       this.server.to(room.code).emit('room:update', this.gameService.toPublicRoom(room));
     } catch (error) {
       this.emitError(client, error);
@@ -78,6 +82,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (room) {
       this.server.to(room.code).emit('room:update', this.gameService.toPublicRoom(room));
     }
+
+    client.emit('room:chat:history', {
+      roomCode: '',
+      messages: [],
+    });
   }
 
   @SubscribeMessage('game:move')
@@ -111,6 +120,25 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         payload.text ?? '',
       );
       this.server.emit('chat:message', message);
+    } catch (error) {
+      this.emitError(client, error);
+    }
+  }
+
+  @SubscribeMessage('room:chat:send')
+  async handleRoomChat(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { roomCode?: string; text?: string },
+  ): Promise<void> {
+    try {
+      const roomCode = payload.roomCode ?? '';
+      const message = await this.gameService.addRoomChatMessage(
+        client.id,
+        roomCode,
+        this.getAuthenticatedUser(client),
+        payload.text ?? '',
+      );
+      this.server.to(message.roomCode).emit('room:chat:message', message);
     } catch (error) {
       this.emitError(client, error);
     }

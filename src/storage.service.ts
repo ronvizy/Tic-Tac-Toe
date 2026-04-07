@@ -2,16 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { StoredUser } from './auth.types';
-import { ChatMessage } from './game.types';
+import { ChatMessage, RoomChatMessage } from './game.types';
 
 interface PersistedData {
   users: StoredUser[];
   globalChatMessages: ChatMessage[];
+  roomChatMessages: Record<string, RoomChatMessage[]>;
 }
 
 const DEFAULT_DATA: PersistedData = {
   users: [],
   globalChatMessages: [],
+  roomChatMessages: {},
 };
 
 @Injectable()
@@ -26,6 +28,10 @@ export class StorageService {
     return {
       users: Array.isArray(parsed.users) ? parsed.users : [],
       globalChatMessages: Array.isArray(parsed.globalChatMessages) ? parsed.globalChatMessages : [],
+      roomChatMessages:
+        parsed.roomChatMessages && typeof parsed.roomChatMessages === 'object'
+          ? (parsed.roomChatMessages as Record<string, RoomChatMessage[]>)
+          : {},
     };
   }
 

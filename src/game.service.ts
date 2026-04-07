@@ -9,6 +9,7 @@ import {
   PlayerState,
   PublicRoomState,
   RestartPayload,
+  RoomChatMessage,
   RoomState,
 } from './game.types';
 import { StorageService } from './storage.service';
@@ -28,6 +29,7 @@ const WINNING_LINES: number[][] = [
 export class GameService {
   private readonly rooms = new Map<string, RoomState>();
   private globalChatMessages: ChatMessage[] = [];
+  private roomChatMessages = new Map<string, RoomChatMessage[]>();
 
   constructor(private readonly storageService: StorageService) {
     void this.hydrateChatMessages();
@@ -80,6 +82,8 @@ export class GameService {
     room.players = room.players.filter((player) => player.socketId !== socketId);
     if (room.players.length === 0) {
       this.rooms.delete(room.code);
+      this.roomChatMessages.delete(room.code);
+      void this.persistRoomChatMessages();
       return null;
     }
 
@@ -180,16 +184,13 @@ export class GameService {
     return this.globalChatMessages.map((message) => ({ ...message }));
   }
 
+  getRoomChatMessages(roomCode: string): RoomChatMessage[] {
+    const normalizedCode = this.normalizeRoomCode(roomCode);
+    return (this.roomChatMessages.get(normalizedCode) ?? []).map((message) => ({ ...message }));
+  }
+
   async addGlobalChatMessage(user: { id: string; username: string }, text: string): Promise<ChatMessage> {
-    const normalizedText = text.trim().replace(/\s+/g, ' ');
-    if (!normalizedText) {
-      throw new BadRequestException('Message cannot be empty.');
-    }
-
-    if (normalizedText.length > 280) {
-      throw new BadRequestException('Message must be 280 characters or fewer.');
-    }
-
+    const normalizedText = this.normalizeChatText(text);
     const message: ChatMessage = {
       id: randomUUID(),
       userId: user.id,
@@ -202,6 +203,33 @@ export class GameService {
     const data = await this.storageService.read();
     data.globalChatMessages = this.globalChatMessages;
     await this.storageService.write(data);
+    return message;
+  }
+
+  async addRoomChatMessage(
+    socketId: string,
+    roomCode: string,
+    user: { id: string; username: string },
+    text: string,
+  ): Promise<RoomChatMessage> {
+    const room = this.getRoom(roomCode);
+    if (!room.players.some((player) => player.socketId === socketId)) {
+      throw new BadRequestException('You are not part of this room.');
+    }
+
+    const normalizedText = this.normalizeChatText(text);
+    const message: RoomChatMessage = {
+      id: randomUUID(),
+      roomCode: room.code,
+      userId: user.id,
+      username: user.username,
+      text: normalizedText,
+      createdAt: new Date().toISOString(),
+    };
+
+    const history = [...(this.roomChatMessages.get(room.code) ?? []), message].slice(-50);
+    this.roomChatMessages.set(room.code, history);
+    await this.persistRoomChatMessages();
     return message;
   }
 
@@ -260,5 +288,27 @@ export class GameService {
   private async hydrateChatMessages(): Promise<void> {
     const data = await this.storageService.read();
     this.globalChatMessages = data.globalChatMessages.slice(-100);
+    this.roomChatMessages = new Map(
+      Object.entries(data.roomChatMessages).map(([roomCode, messages]) => [roomCode, messages.slice(-50)]),
+    );
+  }
+
+  private normalizeChatText(text: string): string {
+    const normalizedText = text.trim().replace(/\s+/g, ' ');
+    if (!normalizedText) {
+      throw new BadRequestException('Message cannot be empty.');
+    }
+
+    if (normalizedText.length > 280) {
+      throw new BadRequestException('Message must be 280 characters or fewer.');
+    }
+
+    return normalizedText;
+  }
+
+  private async persistRoomChatMessages(): Promise<void> {
+    const data = await this.storageService.read();
+    data.roomChatMessages = Object.fromEntries(this.roomChatMessages);
+    await this.storageService.write(data);
   }
 }
