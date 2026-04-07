@@ -8,7 +8,7 @@ import { GameService } from './game.service';
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..'),
-      exclude: ['/socket.io*'],
+      exclude: ['/socket.io/{*path}'],
     }),
   ],
   providers: [GameGateway, GameService],
