@@ -22,6 +22,7 @@ export interface RoomState {
 }
 
 export interface JoinRoomPayload {
+  action: 'create' | 'join';
   playerName: string;
   roomCode?: string;
   gameType: GameType;

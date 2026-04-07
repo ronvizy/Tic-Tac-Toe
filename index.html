@@ -51,6 +51,10 @@
                     <div class="input-group">
                         <input type="text" id="p1-input" placeholder="Player 1 (X)" autocomplete="off">
                         <input type="text" id="p2-input" placeholder="Player 2 (O)" autocomplete="off">
+                        <div id="online-room-mode" class="mode-toggle hidden">
+                            <button id="create-room-btn" class="mode-btn active" type="button">Create Room</button>
+                            <button id="join-room-btn" class="mode-btn" type="button">Join Room</button>
+                        </div>
                         <input type="text" id="room-input" class="hidden" placeholder="Room Code (optional)" autocomplete="off" maxlength="6">
                     </div>
                     <p class="rule-note" id="rule-note">Classic mode fills the board normally and can end in a draw.</p>

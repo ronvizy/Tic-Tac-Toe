@@ -39,9 +39,13 @@ export class GameService {
     const playerName = payload.playerName.trim() || 'Player';
 
     let room = this.rooms.get(roomCode);
-    if (!room) {
+    if (!room && payload.action === 'create') {
       room = this.createRoom(roomCode, requestedType);
       this.rooms.set(roomCode, room);
+    }
+
+    if (!room) {
+      throw new NotFoundException('Room not found. Check the room code and try again.');
     }
 
     const existingPlayer = room.players.find((player) => player.socketId === socketId);

@@ -28,6 +28,9 @@ const setupHint = document.getElementById('setup-hint');
 const roomBanner = document.getElementById('room-banner');
 const p1NameInput = document.getElementById('p1-input');
 const p2NameInput = document.getElementById('p2-input');
+const onlineRoomMode = document.getElementById('online-room-mode');
+const createRoomBtn = document.getElementById('create-room-btn');
+const joinRoomBtn = document.getElementById('join-room-btn');
 const roomInput = document.getElementById('room-input');
 const p1Display = document.getElementById('p1-name-display');
 const p2Display = document.getElementById('p2-name-display');
@@ -76,6 +79,7 @@ const onlineState = {
   roomCode: '',
   myMark: '',
   connected: false,
+  action: 'create',
 };
 
 let socketClientLoader = null;
@@ -388,6 +392,22 @@ function getRoomBannerText() {
   return `Room ${onlineState.roomCode}`;
 }
 
+function setOnlineRoomAction(action) {
+  onlineState.action = action;
+  createRoomBtn.classList.toggle('active', action === 'create');
+  joinRoomBtn.classList.toggle('active', action === 'join');
+  roomInput.classList.toggle('hidden', action !== 'join');
+  roomInput.placeholder = action === 'join' ? 'Enter Room Code' : 'Room code will be generated';
+
+  if (isOnlineGame()) {
+    setupHint.innerText =
+      action === 'create'
+        ? 'Create a fresh room and share the room code with a friend.'
+        : 'Enter an existing room code to join your friend.';
+    startBtn.innerText = action === 'create' ? 'Create Room' : 'Join Room';
+  }
+}
+
 function updateRoomBanner() {
   const text = getRoomBannerText();
   roomBanner.innerText = text;
@@ -474,7 +494,8 @@ function setPlayerMode(mode) {
   const cpuMode = mode === 'cpu';
 
   p2NameInput.classList.toggle('hidden', onlineMode);
-  roomInput.classList.toggle('hidden', !onlineMode);
+  onlineRoomMode.classList.toggle('hidden', !onlineMode);
+  roomInput.classList.toggle('hidden', !onlineMode || onlineState.action !== 'join');
   p2NameInput.disabled = cpuMode;
 
   if (cpuMode) {
@@ -485,8 +506,11 @@ function setPlayerMode(mode) {
   } else if (onlineMode) {
     p2NameInput.value = '';
     setupDescription.innerText = 'Create or join a room to play across the server';
-    setupHint.innerText = 'Share the room code with a friend, or leave it blank to create one.';
-    startBtn.innerText = 'Join Room';
+    setupHint.innerText =
+      onlineState.action === 'create'
+        ? 'Create a fresh room and share the room code with a friend.'
+        : 'Enter an existing room code to join your friend.';
+    startBtn.innerText = onlineState.action === 'create' ? 'Create Room' : 'Join Room';
   } else {
     p2NameInput.value = '';
     setupDescription.innerText = 'Enter player names to start the battle';
@@ -868,10 +892,16 @@ async function startOnlineGame() {
     return;
   }
 
-  setupHint.innerText = 'Joining room...';
+  if (onlineState.action === 'join' && !roomCode) {
+    setupHint.innerText = 'Enter a room code before trying to join.';
+    return;
+  }
+
+  setupHint.innerText = onlineState.action === 'create' ? 'Creating room...' : 'Joining room...';
   onlineState.socket.emit('room:join', {
+    action: onlineState.action,
     playerName,
-    roomCode,
+    roomCode: onlineState.action === 'join' ? roomCode : '',
     gameType,
   });
 }
@@ -963,10 +993,13 @@ cpuBtn.addEventListener('click', () => setPlayerMode('cpu'));
 onlineBtn.addEventListener('click', () => setPlayerMode('online'));
 classicBtn.addEventListener('click', () => setGameType('classic'));
 survivalBtn.addEventListener('click', () => setGameType('three-move'));
+createRoomBtn.addEventListener('click', () => setOnlineRoomAction('create'));
+joinRoomBtn.addEventListener('click', () => setOnlineRoomAction('join'));
 roomInput.addEventListener('input', () => {
   roomInput.value = roomInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
 });
 
+setOnlineRoomAction('create');
 setPlayerMode('pvp');
 setGameType('classic');
 updateScoreboard();
