@@ -4,8 +4,10 @@
   "description": "Realtime Tic-Tac-Toe with a NestJS multiplayer server",
   "main": "dist/main.js",
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "start": "ts-node src/main.ts",
     "start:dev": "ts-node src/main.ts",
+    "start:prod": "node dist/main.js",
     "test": "echo \"No tests configured\""
   },
   "keywords": [],

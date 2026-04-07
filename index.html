@@ -4,80 +4,165 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neon Tic-Tac-Toe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <div class="container">
-        <!-- Setup Screen -->
-        <div id="setup-screen" class="card">
-            <h1>TIC <span class="accent">TAC</span> TOE</h1>
-            <p id="setup-description">Enter player names to start the battle</p>
-            <div class="mode-toggle">
-                <button id="pvp-btn" class="mode-btn active" type="button">2 Players</button>
-                <button id="cpu-btn" class="mode-btn" type="button">Vs Computer</button>
-                <button id="online-btn" class="mode-btn" type="button">Online</button>
+    <div class="container app-layout">
+        <section id="auth-panel" class="auth-panel card">
+            <div class="brand-block">
+                <h1>TIC <span class="accent">TAC</span> TOE</h1>
+                <p id="auth-message" class="form-message">Use your account for online rooms and global chat.</p>
             </div>
-            <div class="game-type">
-                <span class="label">Game Type</span>
-                <div class="mode-toggle">
-                    <button id="classic-btn" class="mode-btn active" type="button">Classic</button>
-                    <button id="survival-btn" class="mode-btn" type="button">3-Move Mode</button>
+
+            <div class="auth-card">
+                <div class="tab-row">
+                    <button id="login-tab" class="tab-btn active" type="button">Login</button>
+                    <button id="signup-tab" class="tab-btn" type="button">Sign Up</button>
                 </div>
-            </div>
-            <div class="input-group">
-                <input type="text" id="p1-input" placeholder="Player 1 (X)" autocomplete="off">
-                <input type="text" id="p2-input" placeholder="Player 2 (O)" autocomplete="off">
-                <input type="text" id="room-input" class="hidden" placeholder="Room Code (optional)" autocomplete="off" maxlength="6">
-            </div>
-            <p class="rule-note" id="rule-note">Classic mode fills the board normally and can end in a draw.</p>
-            <p class="setup-hint" id="setup-hint">Choose a mode and start playing.</p>
-            <button id="start-btn">START GAME</button>
-        </div>
 
-        <!-- Game Screen -->
-        <div id="game-screen" class="hidden">
-            <div class="scoreboard">
-                <div class="score-card" id="p1-card">
-                    <span id="p1-name-display">Player 1</span>
-                    <span class="score" id="p1-score">0</span>
-                </div>
-                <div class="vs">VS</div>
-                <div class="score-card" id="p2-card">
-                    <span id="p2-name-display">Player 2</span>
-                    <span class="score" id="p2-score">0</span>
-                </div>
+                <form id="auth-form" class="auth-form">
+                    <label class="field">
+                        <span>Username</span>
+                        <input id="auth-username" type="text" autocomplete="username" maxlength="20" placeholder="Pick a username">
+                    </label>
+                    <label class="field">
+                        <span>Password</span>
+                        <input id="auth-password" type="password" autocomplete="current-password" placeholder="At least 8 characters">
+                    </label>
+
+                    <div id="availability-panel" class="availability-panel hidden">
+                        <p id="availability-status" class="availability-status"></p>
+                        <div id="suggestions" class="suggestions"></div>
+                    </div>
+                    <button id="auth-submit" type="submit">Login</button>
+                </form>
             </div>
+        </section>
 
-            <h2 id="status-text">Player 1's Turn</h2>
-            <p id="room-banner" class="room-banner hidden"></p>
+        <section id="experience" class="experience hidden">
+            <main class="game-column">
+                <header class="topbar card compact-card">
+                    <div>
+                        <p class="eyebrow">Signed In</p>
+                        <h2 class="welcome-line">Welcome, <span id="current-username">player</span></h2>
+                    </div>
+                    <div class="topbar-actions">
+                        <span id="connection-pill" class="connection-pill">Connecting chat...</span>
+                        <button id="logout-btn" class="ghost-btn" type="button">Logout</button>
+                    </div>
+                </header>
 
-            <div class="board" id="board">
-                <div class="cell" data-index="0"></div>
-                <div class="cell" data-index="1"></div>
-                <div class="cell" data-index="2"></div>
-                <div class="cell" data-index="3"></div>
-                <div class="cell" data-index="4"></div>
-                <div class="cell" data-index="5"></div>
-                <div class="cell" data-index="6"></div>
-                <div class="cell" data-index="7"></div>
-                <div class="cell" data-index="8"></div>
-            </div>
+                <section id="setup-screen" class="card">
+                    <div class="panel-header">
+                        <div>
+                            <h1>TIC <span class="accent">TAC</span> TOE</h1>
+                        </div>
+                        <p id="setup-description">Offline, against a friend or the computer, or go online with room codes.</p>
+                    </div>
 
-            <div class="controls">
-                <button id="reset-btn">Restart Match</button>
-                <button id="quit-btn" class="secondary">Quit Game</button>
-            </div>
-        </div>
-    </div>
+                    <div class="control-grid">
+                        <div class="control-card">
+                            <span class="control-label">Mode</span>
+                            <div class="mode-toggle">
+                                <button id="pvp-btn" class="mode-btn active" type="button">Offline PvP</button>
+                                <button id="cpu-btn" class="mode-btn" type="button">Vs Computer</button>
+                                <button id="online-btn" class="mode-btn" type="button">Online Room</button>
+                            </div>
+                        </div>
 
-    <!-- Win Modal -->
-    <div id="modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h1 id="winner-message">PLAYER 1 WINS!</h1>
-            <button id="modal-close">Play Again</button>
-        </div>
+                        <div class="control-card">
+                            <span class="control-label">Rule Set</span>
+                            <div class="mode-toggle">
+                                <button id="classic-btn" class="mode-btn active" type="button">Classic</button>
+                                <button id="survival-btn" class="mode-btn" type="button">3-Move</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-grid">
+                        <label class="field">
+                            <span>Player X</span>
+                            <input id="p1-input" type="text" autocomplete="off" maxlength="20" placeholder="Player 1">
+                        </label>
+                        <label id="p2-field" class="field">
+                            <span>Player O</span>
+                            <input id="p2-input" type="text" autocomplete="off" maxlength="20" placeholder="Player 2">
+                        </label>
+                    </div>
+
+                    <div id="online-controls" class="online-controls hidden">
+                        <div class="mode-toggle">
+                            <button id="create-room-btn" class="mode-btn active" type="button">Create Room</button>
+                            <button id="join-room-btn" class="mode-btn" type="button">Join Room</button>
+                        </div>
+                        <label class="field">
+                            <span>Room ID</span>
+                            <input id="room-input" type="text" autocomplete="off" maxlength="6" placeholder="Enter room code">
+                        </label>
+                    </div>
+
+                    <p id="rule-note" class="rule-note">Classic mode fills the board normally and can end in a draw.</p>
+                    <p id="setup-hint" class="setup-hint">You can play locally right away or connect online with your account.</p>
+                    <button id="start-btn" type="button">Start Game</button>
+                </section>
+
+                <section id="game-screen" class="hidden">
+                    <div class="scoreboard">
+                        <div class="score-card" id="p1-card">
+                            <span id="p1-name-display">Player 1</span>
+                            <span class="score" id="p1-score">0</span>
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="score-card" id="p2-card">
+                            <span id="p2-name-display">Player 2</span>
+                            <span class="score" id="p2-score">0</span>
+                        </div>
+                    </div>
+
+                    <p id="room-banner" class="room-banner hidden"></p>
+                    <h2 id="status-text" class="status-text">Player 1's Turn</h2>
+
+                    <div class="board" id="board">
+                        <button class="cell" type="button" data-index="0"></button>
+                        <button class="cell" type="button" data-index="1"></button>
+                        <button class="cell" type="button" data-index="2"></button>
+                        <button class="cell" type="button" data-index="3"></button>
+                        <button class="cell" type="button" data-index="4"></button>
+                        <button class="cell" type="button" data-index="5"></button>
+                        <button class="cell" type="button" data-index="6"></button>
+                        <button class="cell" type="button" data-index="7"></button>
+                        <button class="cell" type="button" data-index="8"></button>
+                    </div>
+
+                    <div class="controls">
+                        <button id="reset-btn" type="button">Restart Match</button>
+                        <button id="quit-btn" class="ghost-btn" type="button">Back To Setup</button>
+                    </div>
+                </section>
+            </main>
+
+            <aside class="chat-column">
+                <section class="card chat-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>GLOBAL <span class="accent">CHAT</span></h2>
+                            <p>Everyone online talks here</p>
+                        </div>
+                        <span id="chat-status" class="chat-status">Connecting...</span>
+                    </div>
+
+                    <div id="chat-messages" class="chat-messages"></div>
+
+                    <form id="chat-form" class="chat-form">
+                        <textarea id="chat-input" rows="3" maxlength="280" placeholder="Say something to the whole lobby"></textarea>
+                        <button id="chat-submit" type="submit">Send Message</button>
+                    </form>
+                </section>
+            </aside>
+        </section>
     </div>
 
     <script src="script.js"></script>

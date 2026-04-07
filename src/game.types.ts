@@ -4,6 +4,7 @@ export type RoundStatus = 'waiting' | 'active' | 'won' | 'draw';
 
 export interface PlayerState {
   socketId: string;
+  userId: string;
   name: string;
   mark: Mark;
 }
@@ -22,7 +23,7 @@ export interface RoomState {
 }
 
 export interface JoinRoomPayload {
-  playerName: string;
+  action: 'create' | 'join';
   roomCode?: string;
   gameType: GameType;
 }
@@ -47,4 +48,17 @@ export interface PublicRoomState {
   roundStatus: RoundStatus;
   winnerMark: Mark | null;
   winningLine: number[];
+}
+
+export interface AuthenticatedSocketUser {
+  id: string;
+  username: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  username: string;
+  text: string;
+  createdAt: string;
 }

@@ -3,6 +3,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
+import { AuthService } from './auth.service';
+import { StorageService } from './storage.service';
+import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
@@ -11,6 +14,7 @@ import { GameService } from './game.service';
       exclude: ['/socket.io*'],
     }),
   ],
-  providers: [GameGateway, GameService],
+  controllers: [AuthController],
+  providers: [StorageService, AuthService, GameGateway, GameService],
 })
 export class AppModule {}

@@ -1,5 +1,6 @@
 import {
   ConnectedSocket,
+  OnGatewayConnection,
   MessageBody,
   OnGatewayDisconnect,
   SubscribeMessage,
@@ -8,18 +9,34 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
-import { JoinRoomPayload, MovePayload, RestartPayload } from './game.types';
+import { JoinRoomPayload, MovePayload, RestartPayload, AuthenticatedSocketUser } from './game.types';
+import { AuthService } from './auth.service';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-export class GameGateway implements OnGatewayDisconnect {
+export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  constructor(private readonly gameService: GameService) {}
+  constructor(
+    private readonly gameService: GameService,
+    private readonly authService: AuthService,
+  ) {}
+
+  async handleConnection(client: Socket): Promise<void> {
+    try {
+      const token = this.readToken(client);
+      const user = await this.authService.getProfileFromToken(token);
+      client.data.user = user;
+      client.emit('chat:history', this.gameService.getChatMessages());
+    } catch (error) {
+      this.emitError(client, error);
+      client.disconnect();
+    }
+  }
 
   handleDisconnect(client: Socket): void {
     const room = this.gameService.leaveRoom(client.id);
@@ -37,7 +54,7 @@ export class GameGateway implements OnGatewayDisconnect {
         }
       }
 
-      const { room, player } = this.gameService.joinRoom(client.id, payload);
+      const { room, player } = this.gameService.joinRoom(client.id, payload, this.getUser(client));
       client.join(room.code);
       client.emit('room:joined', {
         roomCode: room.code,
@@ -83,8 +100,44 @@ export class GameGateway implements OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('chat:send')
+  async handleChatMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { text?: string },
+  ): Promise<void> {
+    try {
+      const message = await this.gameService.addChatMessage(this.getUser(client), payload.text ?? '');
+      this.server.emit('chat:message', message);
+    } catch (error) {
+      this.emitError(client, error);
+    }
+  }
+
   private emitError(client: Socket, error: unknown): void {
     const message = error instanceof Error ? error.message : 'Unexpected server error.';
     client.emit('room:error', { message });
+  }
+
+  private getUser(client: Socket): AuthenticatedSocketUser {
+    const user = client.data.user as AuthenticatedSocketUser | undefined;
+    if (!user) {
+      throw new Error('Unauthenticated socket.');
+    }
+
+    return user;
+  }
+
+  private readToken(client: Socket): string | undefined {
+    const authToken = client.handshake.auth?.token;
+    if (typeof authToken === 'string' && authToken.trim()) {
+      return authToken;
+    }
+
+    const bearerHeader = client.handshake.headers.authorization;
+    if (typeof bearerHeader === 'string' && bearerHeader.startsWith('Bearer ')) {
+      return bearerHeader.slice(7);
+    }
+
+    return undefined;
   }
 }

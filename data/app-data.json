@@ -1,0 +1,54 @@
+{
+  "users": [
+    {
+      "id": "0cfcfaa1e1a93d574fb479d5",
+      "username": "carry",
+      "passwordHash": "1c5569f864a89d84af76d009f38dd966:f6fb7b238f039fa56f1ff4155fd873e628c65526d46410e35e5db914968db57b55cfaf04eb97586070c9cd00cf15911ca36a18faa5be2a529cde96287adddde2",
+      "createdAt": "2026-04-06T19:23:07.621Z"
+    }
+  ],
+  "chatMessages": [
+    {
+      "id": "1775503398826-pllh9rj4",
+      "userId": "0cfcfaa1e1a93d574fb479d5",
+      "username": "carry",
+      "text": "efddf",
+      "createdAt": "2026-04-06T19:23:18.826Z"
+    },
+    {
+      "id": "1775570395613-of8ybx4f",
+      "userId": "0cfcfaa1e1a93d574fb479d5",
+      "username": "carry",
+      "text": "hey",
+      "createdAt": "2026-04-07T13:59:55.624Z"
+    },
+    {
+      "id": "1775570401964-34c42nrj",
+      "userId": "0cfcfaa1e1a93d574fb479d5",
+      "username": "carry",
+      "text": "adjfaldkjfljd",
+      "createdAt": "2026-04-07T14:00:01.964Z"
+    },
+    {
+      "id": "1775570407883-yq7fitfa",
+      "userId": "0cfcfaa1e1a93d574fb479d5",
+      "username": "carry",
+      "text": "jadjflkadjf",
+      "createdAt": "2026-04-07T14:00:07.883Z"
+    },
+    {
+      "id": "1775570411038-1ez8i0rs",
+      "userId": "0cfcfaa1e1a93d574fb479d5",
+      "username": "carry",
+      "text": "adfdsfad",
+      "createdAt": "2026-04-07T14:00:11.038Z"
+    },
+    {
+      "id": "1775570414284-3amk6mhc",
+      "userId": "0cfcfaa1e1a93d574fb479d5",
+      "username": "carry",
+      "text": "adfdfadf",
+      "createdAt": "2026-04-07T14:00:14.284Z"
+    }
+  ]
+}
