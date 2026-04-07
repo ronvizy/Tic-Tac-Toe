@@ -368,6 +368,21 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
     text-transform: uppercase;
 }
 
+.join-room-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 92px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    color: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
 .chat-compose textarea {
     width: 100%;
     min-height: 56px;

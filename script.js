@@ -234,6 +234,21 @@ function renderActiveChat() {
   renderChatHistory(getActiveChatMessages());
 }
 
+function getSharedRoomStatus(sharedRoomId) {
+  if (!sharedRoomId) {
+    return { type: 'join', label: 'Join' };
+  }
+
+  if (sharedRoomId === onlineState.roomCode) {
+    return {
+      type: 'status',
+      label: onlineState.roomPlayerCount >= 2 ? 'In Progress' : 'Already Joined',
+    };
+  }
+
+  return { type: 'join', label: 'Join' };
+}
+
 function setActiveChatScope(scope) {
   if (scope === 'room' && !onlineState.roomCode) {
     return;
@@ -276,16 +291,25 @@ function appendChatMessage(message, scroll = true) {
     shareLabel.className = 'shared-room-label';
     shareLabel.innerText = `Room ${message.sharedRoomId}`;
 
-    const joinButton = document.createElement('button');
-    joinButton.type = 'button';
-    joinButton.className = 'join-room-chip';
-    joinButton.innerText = 'Join';
-    joinButton.addEventListener('click', () => {
-      void joinSharedRoomFromChat(message.sharedRoomId);
-    });
-
     shareCard.appendChild(shareLabel);
-    shareCard.appendChild(joinButton);
+
+    const roomStatus = getSharedRoomStatus(message.sharedRoomId);
+    if (roomStatus.type === 'join') {
+      const joinButton = document.createElement('button');
+      joinButton.type = 'button';
+      joinButton.className = 'join-room-chip';
+      joinButton.innerText = roomStatus.label;
+      joinButton.addEventListener('click', () => {
+        void joinSharedRoomFromChat(message.sharedRoomId);
+      });
+      shareCard.appendChild(joinButton);
+    } else {
+      const statusBadge = document.createElement('span');
+      statusBadge.className = 'join-room-status';
+      statusBadge.innerText = roomStatus.label;
+      shareCard.appendChild(statusBadge);
+    }
+
     item.appendChild(shareCard);
   }
 
@@ -915,6 +939,9 @@ function applyOnlineSnapshot(snapshot) {
   renderBoard();
   updateScoreboard();
   updateRoomBanner();
+  if (activeChatScope === 'global') {
+    renderActiveChat();
+  }
 
   if (snapshot.roundStatus === 'waiting') {
     onlinePreviousRoundStatus = 'waiting';
@@ -1054,6 +1081,7 @@ function leaveOnlineRoom() {
   onlinePreviousRoundStatus = 'idle';
   roomChatHistory = [];
   setActiveChatScope('global');
+  renderActiveChat();
 }
 
 function handleCellClick(event) {

@@ -78,6 +78,14 @@
       "text": "Join my room QFJED3",
       "createdAt": "2026-04-07T16:58:38.583Z",
       "sharedRoomId": "QFJED3"
+    },
+    {
+      "id": "67f5a051-c8f5-4fdb-87bd-869e759f6ae0",
+      "userId": "2dcd43835ed7a10d292cda2e",
+      "username": "rohan",
+      "text": "Join my room APFAQI",
+      "createdAt": "2026-04-07T17:05:42.410Z",
+      "sharedRoomId": "APFAQI"
     }
   ],
   "roomChatMessages": {
