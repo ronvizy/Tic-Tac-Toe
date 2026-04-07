@@ -10,10 +10,30 @@
 <body>
 
     <div class="container">
+        <div id="auth-screen" class="card">
+            <h1>TIC <span class="accent">TAC</span> TOE</h1>
+            <p id="auth-description">Login or create an account to continue</p>
+            <div class="mode-toggle">
+                <button id="login-tab" class="mode-btn active" type="button">Login</button>
+                <button id="signup-tab" class="mode-btn" type="button">Sign Up</button>
+            </div>
+            <div class="input-group">
+                <input type="text" id="auth-username" placeholder="Username" autocomplete="username" maxlength="20">
+                <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
+            </div>
+            <div id="availability-box" class="availability-box hidden">
+                <p id="availability-status" class="availability-status"></p>
+                <div id="username-suggestions" class="username-suggestions"></div>
+            </div>
+            <p class="setup-hint" id="auth-hint">Use letters, numbers, or underscores in your username.</p>
+            <button id="auth-submit" type="button">LOGIN</button>
+        </div>
+
         <!-- Setup Screen -->
-        <div id="setup-screen" class="card">
+        <div id="setup-screen" class="card hidden">
             <h1>TIC <span class="accent">TAC</span> TOE</h1>
             <p id="setup-description">Enter player names to start the battle</p>
+            <p class="auth-badge">Signed in as <span id="current-user-display">player</span></p>
             <div class="mode-toggle">
                 <button id="pvp-btn" class="mode-btn active" type="button">2 Players</button>
                 <button id="cpu-btn" class="mode-btn" type="button">Vs Computer</button>

@@ -32,6 +32,17 @@ body {
     padding: 20px;
 }
 
+#auth-screen {
+    margin-bottom: 20px;
+}
+
+.auth-badge {
+    margin-top: -10px;
+    margin-bottom: 18px;
+    color: #cbd5e1;
+    font-size: 0.92rem;
+}
+
 /* Setup Screen */
 .card {
     background: var(--card-bg);
@@ -111,6 +122,44 @@ p { color: #94a3b8; margin-bottom: 30px; }
 .input-group input:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.availability-box {
+    margin-top: -2px;
+    margin-bottom: 18px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.availability-status {
+    margin-bottom: 10px;
+    color: #cbd5e1;
+}
+
+.availability-status.good {
+    color: #67e8f9;
+}
+
+.availability-status.bad {
+    color: #fda4af;
+}
+
+.username-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.suggestion-chip {
+    width: auto;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    background: rgba(34, 211, 238, 0.14);
+    text-transform: none;
+    box-shadow: none;
 }
 
 button {

@@ -1,3 +1,15 @@
+const authScreen = document.getElementById('auth-screen');
+const loginTab = document.getElementById('login-tab');
+const signupTab = document.getElementById('signup-tab');
+const authUsernameInput = document.getElementById('auth-username');
+const authPasswordInput = document.getElementById('auth-password');
+const authSubmitBtn = document.getElementById('auth-submit');
+const authDescription = document.getElementById('auth-description');
+const authHint = document.getElementById('auth-hint');
+const availabilityBox = document.getElementById('availability-box');
+const availabilityStatus = document.getElementById('availability-status');
+const usernameSuggestions = document.getElementById('username-suggestions');
+const currentUserDisplay = document.getElementById('current-user-display');
 const setupScreen = document.getElementById('setup-screen');
 const gameScreen = document.getElementById('game-screen');
 const startBtn = document.getElementById('start-btn');
@@ -26,6 +38,7 @@ const SOCKET_SERVER_URL =
   window.location.protocol.startsWith('http') && window.location.port === '3000'
     ? window.location.origin
     : 'http://127.0.0.1:3000';
+const SESSION_STORAGE_KEY = 'tic-tac-toe-session';
 
 const winningConditions = [
   [0, 1, 2],
@@ -61,6 +74,189 @@ const onlineState = {
 };
 
 let socketClientLoader = null;
+let authMode = 'login';
+let session = {
+  token: '',
+  user: null,
+};
+let usernameCheckTimer = null;
+
+function saveSession() {
+  if (session.token && session.user) {
+    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    return;
+  }
+
+  window.localStorage.removeItem(SESSION_STORAGE_KEY);
+}
+
+function loadSession() {
+  const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+  if (!raw) {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    session = {
+      token: typeof parsed.token === 'string' ? parsed.token : '',
+      user: parsed.user && typeof parsed.user.username === 'string' ? parsed.user : null,
+    };
+  } catch {
+    window.localStorage.removeItem(SESSION_STORAGE_KEY);
+  }
+}
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`${SOCKET_SERVER_URL}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(session.token ? { Authorization: `Bearer ${session.token}` } : {}),
+      ...(options.headers ?? {}),
+    },
+    ...options,
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(payload?.message || 'Request failed.');
+  }
+
+  return payload;
+}
+
+function renderAuthMode() {
+  const isSignup = authMode === 'signup';
+  loginTab.classList.toggle('active', !isSignup);
+  signupTab.classList.toggle('active', isSignup);
+  authSubmitBtn.innerText = isSignup ? 'SIGN UP' : 'LOGIN';
+  authDescription.innerText = isSignup
+    ? 'Create a username and password to continue'
+    : 'Login with your username and password';
+  availabilityBox.classList.toggle('hidden', !isSignup);
+  authPasswordInput.autocomplete = isSignup ? 'new-password' : 'current-password';
+
+  if (!isSignup) {
+    availabilityStatus.innerText = '';
+    availabilityStatus.className = 'availability-status';
+    usernameSuggestions.innerHTML = '';
+  }
+}
+
+function renderAuthenticatedState() {
+  const loggedIn = Boolean(session.token && session.user);
+  authScreen.classList.toggle('hidden', loggedIn);
+  setupScreen.classList.toggle('hidden', !loggedIn);
+  currentUserDisplay.innerText = session.user?.username || 'player';
+
+  if (session.user) {
+    p1NameInput.value = session.user.username;
+  }
+}
+
+async function restoreSession() {
+  loadSession();
+  if (!session.token) {
+    renderAuthenticatedState();
+    return;
+  }
+
+  try {
+    const user = await apiRequest('/api/auth/me');
+    session.user = user;
+    saveSession();
+  } catch {
+    session = { token: '', user: null };
+    saveSession();
+  }
+
+  renderAuthenticatedState();
+}
+
+function setAuthHint(message, isError = false) {
+  authHint.innerText = message;
+  authHint.style.color = isError ? '#fda4af' : '#cbd5e1';
+}
+
+async function checkUsernameAvailability() {
+  if (authMode !== 'signup') {
+    return;
+  }
+
+  const username = authUsernameInput.value.trim();
+  if (username.length < 3) {
+    availabilityStatus.className = 'availability-status bad';
+    availabilityStatus.innerText = 'Username must be at least 3 characters.';
+    usernameSuggestions.innerHTML = '';
+    return;
+  }
+
+  try {
+    const result = await apiRequest(`/api/auth/availability?username=${encodeURIComponent(username)}`);
+    availabilityStatus.className = `availability-status ${result.available ? 'good' : 'bad'}`;
+    availabilityStatus.innerText = result.available
+      ? `"${result.normalizedUsername}" is available.`
+      : `"${result.normalizedUsername}" is already taken.`;
+    usernameSuggestions.innerHTML = '';
+
+    result.suggestions.forEach((suggestion) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'suggestion-chip';
+      button.innerText = suggestion;
+      button.addEventListener('click', () => {
+        authUsernameInput.value = suggestion;
+        void checkUsernameAvailability();
+      });
+      usernameSuggestions.appendChild(button);
+    });
+  } catch (error) {
+    availabilityStatus.className = 'availability-status bad';
+    availabilityStatus.innerText = error instanceof Error ? error.message : 'Could not check username.';
+    usernameSuggestions.innerHTML = '';
+  }
+}
+
+function scheduleUsernameCheck() {
+  if (usernameCheckTimer) {
+    window.clearTimeout(usernameCheckTimer);
+  }
+
+  usernameCheckTimer = window.setTimeout(() => {
+    void checkUsernameAvailability();
+  }, 250);
+}
+
+async function handleAuthSubmit() {
+  const username = authUsernameInput.value.trim();
+  const password = authPasswordInput.value;
+
+  if (!username || !password) {
+    setAuthHint('Enter both username and password.', true);
+    return;
+  }
+
+  setAuthHint(authMode === 'signup' ? 'Creating account...' : 'Logging in...');
+
+  try {
+    const endpoint = authMode === 'signup' ? '/api/auth/signup' : '/api/auth/login';
+    const result = await apiRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+
+    session = {
+      token: result.token,
+      user: result.user,
+    };
+    saveSession();
+    authPasswordInput.value = '';
+    setAuthHint('Authenticated successfully.');
+    renderAuthenticatedState();
+  } catch (error) {
+    setAuthHint(error instanceof Error ? error.message : 'Authentication failed.', true);
+  }
+}
 
 function isVsComputer() {
   return playerMode === 'cpu';
@@ -380,7 +576,7 @@ function checkLocalResult() {
 function initLocalGame() {
   clearPendingTimers();
   isResolvingRound = false;
-  player1Name = p1NameInput.value.trim() || 'Player 1';
+  player1Name = p1NameInput.value.trim() || session.user?.username || 'Player 1';
   player2Name = isVsComputer() ? 'Computer' : (p2NameInput.value.trim() || 'Player 2');
   p1Score = 0;
   p2Score = 0;
@@ -570,7 +766,7 @@ function applyOnlineSnapshot(snapshot) {
 }
 
 async function startOnlineGame() {
-  const playerName = p1NameInput.value.trim() || 'Player';
+  const playerName = p1NameInput.value.trim() || session.user?.username || 'Player';
   const roomCode = roomInput.value.trim().toUpperCase();
   try {
     await ensureSocket();
@@ -690,3 +886,35 @@ setGameType('classic');
 updateScoreboard();
 setBoardDisabled(true);
 updateRoomBanner();
+renderAuthMode();
+void restoreSession();
+
+loginTab.addEventListener('click', () => {
+  authMode = 'login';
+  renderAuthMode();
+  setAuthHint('Use your username and password to continue.');
+});
+
+signupTab.addEventListener('click', () => {
+  authMode = 'signup';
+  renderAuthMode();
+  setAuthHint('Create a username and password to continue.');
+  void checkUsernameAvailability();
+});
+
+authSubmitBtn.addEventListener('click', () => {
+  void handleAuthSubmit();
+});
+
+authPasswordInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    void handleAuthSubmit();
+  }
+});
+
+authUsernameInput.addEventListener('input', () => {
+  if (authMode === 'signup') {
+    scheduleUsernameCheck();
+  }
+});
