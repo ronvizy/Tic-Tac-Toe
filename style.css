@@ -55,7 +55,7 @@ body {
 }
 
 #game-screen {
-    max-width: 560px;
+    width: min(100%, 52vh, 560px);
     margin: 0 auto;
 }
 
@@ -303,7 +303,7 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
 
 .score-card {
     background: var(--card-bg);
-    padding: 15px;
+    padding: clamp(10px, 1.8vw, 15px);
     border-radius: 15px;
     width: 40%;
     text-align: center;
@@ -313,7 +313,7 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
 #p1-card.active { border-color: var(--accent-x); }
 #p2-card.active { border-color: var(--accent-o); }
 
-.score { display: block; font-size: 1.5rem; font-weight: 800; }
+.score { display: block; font-size: clamp(1.1rem, 2.4vw, 1.5rem); font-weight: 800; }
 
 .vs { font-weight: 800; color: #475569; }
 
@@ -345,9 +345,10 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
 .board {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: clamp(6px, 1.2vw, 10px);
     margin-bottom: 14px;
-    max-width: 560px;
+    width: 100%;
+    max-width: min(100%, 52vh, 560px);
     margin-left: auto;
     margin-right: auto;
 }
@@ -355,11 +356,11 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
 .cell {
     aspect-ratio: 1;
     background: var(--card-bg);
-    border-radius: 15px;
+    border-radius: clamp(10px, 1.5vw, 15px);
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.7rem;
+    font-size: clamp(1.15rem, 3vw, 1.7rem);
     font-weight: 800;
     cursor: pointer;
     transition: 0.2s;
@@ -464,5 +465,9 @@ button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(56, 189
     .mode-toggle,
     .controls {
         flex-direction: column;
+    }
+
+    #game-screen {
+        width: min(100%, 78vw);
     }
 }
